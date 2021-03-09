@@ -9,9 +9,10 @@ abstract class Controller {
     }
 
     public function render($data) {
-        $layout_path = ROOT . '\views\layouts\\' . $this->route['prefix'] . '\default.php';
-        $view_path = ROOT .'\views\\' . $this->route['prefix'] .'\\'. lcfirst($this->route['controller']). '\\' . $this->route['action'] .'.php';
-
+        $layout_path = ROOT . '/views/layouts/' . $this->route['prefix'] . 'default.php';
+        $view_path = ROOT .'/views/' . $this->route['prefix'] .'/'. lcfirst($this->route['controller']). '/' . $this->route['action'] .'.php';
+        $view_path = str_replace('\\', '/', $view_path);
+        $layout_path = str_replace('\\', '/', $layout_path);
         $view_obj = new View($data, $view_path, $layout_path);
         $view_obj->run($data);
     }

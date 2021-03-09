@@ -2,10 +2,12 @@
 namespace vendor\mvcsoft\base;
 use PDO;
 use vendor\mvcsoft\DB_connection;
+use Valitron\Validator;
 
 class Model {
     public $attributes = [];
     public $rules = [];
+    public $errors = [];
     protected $dbConnection;
 
     public function __construct() {
@@ -20,7 +22,7 @@ class Model {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    function getOne($sql, $params) {
+    public function getOne($sql, $params = []) {
 
         $stmt = $this->dbConnection->prepare($sql);
         $stmt->execute($params);
@@ -31,7 +33,7 @@ class Model {
      * Inset, Update and others
      */
 
-    function Query($sql, $params) {
+    public function Query($sql, $params = []) {
         $stmt = $this->dbConnection->prepare($sql);
 
         if ($stmt->execute($params)) {
@@ -39,14 +41,41 @@ class Model {
         }
 
         return FALSE;
-
     }
 
     /**
      * Last autoincrement Id
      */
 
-    function qInsertId() {
+    public function qInsertId() {
         return $this->dbConnection->lastInsertId();
     }
+
+    public function load($data) {
+        foreach($this->attributes as $key => $value) {
+            if(isset($data[$key])) {
+                $this->attributes[$key] = trim($data[$key]);
+            }
+        }
+    }
+
+    public function validate($data){
+        Validator::lang('ru');
+        $v = new Validator($data);
+        $v->setPrependLabels(false);
+        $v->rules($this->rules);
+
+        if($v->validate()) {
+            return true;
+        }
+        $this->errors = $v->errors();
+        return false;
+    }
+
+    public function handleAttributes() {
+        $this->attributes = array_map(function($item){
+            return htmlspecialchars($item, ENT_QUOTES, 'UTF-8');
+        }, $this->attributes);
+    }
+
 }
